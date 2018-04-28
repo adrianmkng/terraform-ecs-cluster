@@ -7,3 +7,5 @@ variable "subnet_ids" {
 }
 
 variable "lb_logs_s3_bucket" {}
+
+variable "instance_profile" {}

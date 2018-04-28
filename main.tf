@@ -9,6 +9,7 @@ resource "aws_launch_configuration" "ecs" {
   user_data     = "${base64encode("${data.template_file.user_data.rendered}")}"
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.ecs_sg.id}"]
+  iam_instance_profile = "${var.instance_profile}"
 }
 
 resource "aws_autoscaling_group" "ecs" {
