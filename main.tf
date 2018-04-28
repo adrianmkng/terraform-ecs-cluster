@@ -20,6 +20,7 @@ resource "aws_autoscaling_group" "ecs" {
 
   tags = ["${concat(
     list(
+      map("key", "Name", "value", "${terraform.workspace}-ecs-node", "propagate_at_launch", true),
       map("key", "system", "value", "ecs", "propagate_at_launch", true),
       map("key", "environment", "value", "${terraform.workspace}", "propagate_at_launch", true)
     )
@@ -61,4 +62,59 @@ resource "aws_security_group_rule" "egress_allow_all" {
   cidr_blocks     = ["0.0.0.0/0"]
 
   security_group_id = "${aws_security_group.ecs_sg.id}"
+}
+
+resource "aws_security_group" "lb_sg" {
+  name        = "${terraform.workspace}-lb-sg"
+  description = "Security group for ALB"
+  vpc_id      = "${var.vpc_id}"
+}
+
+resource "aws_security_group_rule" "ingress_allow_alb_access" {
+  type            = "ingress"
+  from_port       = 80
+  to_port         = 80
+  protocol        = "tcp"
+  cidr_blocks     = ["0.0.0.0/0"]
+
+  security_group_id = "${aws_security_group.lb_sg.id}"
+}
+
+resource "aws_security_group_rule" "ingress_allow_lb_ecs_access" {
+  type            = "ingress"
+  from_port       = 32678
+  to_port         = 65535
+  protocol        = "tcp"
+  source_security_group_id = "${aws_security_group.lb_sg.id}"
+
+  security_group_id = "${aws_security_group.ecs_sg.id}"
+}
+
+resource "aws_security_group_rule" "egress_allow_lb_all" {
+  type            = "egress"
+  from_port       = 0
+  to_port         = 65535
+  protocol        = "-1"
+  cidr_blocks     = ["0.0.0.0/0"]
+
+  security_group_id = "${aws_security_group.lb_sg.id}"
+}
+resource "aws_lb" "ecs_alb" {
+  name               = "${terraform.workspace}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = ["${aws_security_group.lb_sg.id}"]
+  subnets            = ["${var.subnet_ids}"]
+
+  enable_deletion_protection = true
+
+  access_logs {
+    bucket  = "${var.lb_logs_s3_bucket}"
+    prefix  = "${terraform.workspace}-lb"
+    enabled = true
+  }
+
+  tags {
+    Environment = "${terraform.workspace}"
+  }
 }
