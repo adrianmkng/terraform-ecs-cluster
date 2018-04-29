@@ -109,11 +109,11 @@ resource "aws_lb" "ecs_alb" {
 
   enable_deletion_protection = true
 
-  access_logs {
-    bucket  = "${var.lb_logs_s3_bucket}"
-    prefix  = "${terraform.workspace}-lb"
-    enabled = true
-  }
+#  access_logs {
+#    bucket  = "${var.lb_logs_s3_bucket}"
+#    prefix  = "${terraform.workspace}-lb"
+#    enabled = true
+#  }
 
   tags {
     Environment = "${terraform.workspace}"
