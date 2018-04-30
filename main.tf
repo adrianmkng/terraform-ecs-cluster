@@ -10,6 +10,7 @@ resource "aws_launch_configuration" "ecs" {
   associate_public_ip_address = "true"
   security_groups = ["${aws_security_group.ecs_sg.id}"]
   iam_instance_profile = "${var.instance_profile}"
+  key_name = "${var.ssh_key_name}"
 }
 
 resource "aws_autoscaling_group" "ecs" {

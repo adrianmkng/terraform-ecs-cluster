@@ -14,3 +14,5 @@ variable "min_instances" {}
 
 variable "max_instances" {}
 
+variable "ssh_key_name" {}
+
